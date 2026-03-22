@@ -2,46 +2,75 @@
 <html>
 <head>
   <title>Conecta Game 🐍</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background: black;
+      margin: 0;
+      font-family: Arial;
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      margin: 0;
-      color: white;
-      font-family: Arial;
+    }
+
+    h2 {
+      color: #00f0ff;
+      margin-bottom: 5px;
+    }
+
+    #score {
+      margin-bottom: 10px;
     }
 
     canvas {
       border: 2px solid #00f0ff;
-      margin-bottom: 20px;
+      width: 90vw;
+      max-width: 350px;
+      height: 90vw;
+      max-height: 350px;
+      background: black;
     }
 
     .controls {
+      margin-top: 15px;
       display: grid;
-      grid-template-columns: 60px 60px 60px;
+      grid-template-columns: 70px 70px 70px;
       gap: 10px;
     }
 
     button {
-      width: 60px;
-      height: 60px;
+      width: 70px;
+      height: 70px;
       font-size: 20px;
       background: #111;
       color: #00f0ff;
       border: 1px solid #00f0ff;
-      border-radius: 10px;
+      border-radius: 12px;
+    }
+
+    #startBtn {
+      margin-top: 15px;
+      width: 200px;
+      height: 50px;
+      font-size: 18px;
+      background: #00f0ff;
+      color: black;
+      border: none;
+      border-radius: 12px;
     }
   </style>
 </head>
 <body>
 
 <h2>Conecta Snake 🐍</h2>
+<div id="score">Puntaje: 0</div>
 
-<canvas id="game" width="300" height="300"></canvas>
+<canvas id="game"></canvas>
+
+<button id="startBtn">▶️ Iniciar Juego</button>
 
 <div class="controls">
   <div></div>
@@ -58,15 +87,26 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 let box = 15;
-let snake = [{x: 150, y: 150}];
-let direction = "RIGHT";
+let snake;
+let direction;
+let food;
+let game;
+let score = 0;
+let running = false;
 
-let food = {
-  x: Math.floor(Math.random()*20)*box,
-  y: Math.floor(Math.random()*20)*box
-};
+function resetGame() {
+  snake = [{x:150, y:150}];
+  direction = "RIGHT";
+  food = {
+    x: Math.floor(Math.random()*20)*box,
+    y: Math.floor(Math.random()*20)*box
+  };
+  score = 0;
+  document.getElementById("score").innerText = "Puntaje: 0";
+}
 
 function setDir(dir) {
+  if (!running) return;
   if (dir === "UP" && direction !== "DOWN") direction = "UP";
   if (dir === "DOWN" && direction !== "UP") direction = "DOWN";
   if (dir === "LEFT" && direction !== "RIGHT") direction = "LEFT";
@@ -75,7 +115,7 @@ function setDir(dir) {
 
 function draw() {
   ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, 300, 300);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < snake.length; i++) {
     ctx.fillStyle = i === 0 ? "#00f0ff" : "#0099aa";
@@ -93,6 +133,9 @@ function draw() {
   if (direction === "RIGHT") head.x += box;
 
   if (head.x === food.x && head.y === food.y) {
+    score++;
+    document.getElementById("score").innerText = "Puntaje: " + score;
+
     food = {
       x: Math.floor(Math.random()*20)*box,
       y: Math.floor(Math.random()*20)*box
@@ -103,18 +146,22 @@ function draw() {
 
   snake.unshift(head);
 
-  // colisión
   if (
-    head.x < 0 || head.y < 0 || head.x >= 300 || head.y >= 300 ||
+    head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height ||
     snake.slice(1).some(s => s.x === head.x && s.y === head.y)
   ) {
-    alert("Game Over 😅");
-    snake = [{x:150, y:150}];
-    direction = "RIGHT";
+    clearInterval(game);
+    running = false;
+    alert("Game Over 😅 Puntaje: " + score);
   }
 }
 
-setInterval(draw, 120);
+document.getElementById("startBtn").onclick = () => {
+  resetGame();
+  running = true;
+  clearInterval(game);
+  game = setInterval(draw, 120);
+};
 </script>
 
 </body>
